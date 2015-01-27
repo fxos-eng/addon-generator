@@ -1,0 +1,2 @@
+fxos-addon-generator
+====================

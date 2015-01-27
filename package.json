@@ -1,0 +1,31 @@
+{
+  "name": "fxos-addon-generator",
+  "version": "0.0.1",
+  "homepage": "https://github.com/fxos/addon-generator",
+  "license": "MPL",
+  "main": "dist/fxos-addon-generator.js",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "browserify": "^7.0.0",
+    "karma": "^0.12.28",
+    "karma-firefox-launcher": "^0.1.3",
+    "karma-mocha": "^0.1.10",
+    "karma-sinon-chai": "^0.2.0"
+  },
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start test/karma.conf.js --single-run",
+    "build": "mkdir -p dist && ./node_modules/.bin/browserify src/addon-generator.js --outfile dist/addon-generator.js --standalone AddonGenerator && mkdir -p example/lib && cp -rf dist/addon-generator.js example/lib/addon-generator.js",
+    "clean": "rm -rf dist/addon-generator.js && rm -rf example/lib/addon-generator.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fxos/addon-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fxos/addon-generator/issues"
+  }
+}
