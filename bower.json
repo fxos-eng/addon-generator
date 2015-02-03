@@ -18,6 +18,8 @@
     "package.json",
     "README.md"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "jszip": "Stuk/jszip#~2.4.0"
+  },
   "devDependencies": {}
 }

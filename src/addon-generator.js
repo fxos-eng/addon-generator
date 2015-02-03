@@ -4,6 +4,8 @@
 
 module.exports = window.AddonGenerator = (function() {
 
+var JSZip = require('../bower_components/jszip/dist/jszip');
+
 var AddEventListenerOperation = require('./add-event-listener-operation');
 var AppendChildOperation      = require('./append-child-operation');
 var InnerHTMLOperation        = require('./inner-html-operation');
@@ -18,6 +20,8 @@ function AddonGenerator(element) {
 AddonGenerator.prototype.constructor = AddonGenerator;
 
 AddonGenerator.prototype.generate = function() {
+  var zip = new JSZip();
+
   var script = [
     '/*=AddonGenerator*/',
     '(function(){',
@@ -31,7 +35,26 @@ AddonGenerator.prototype.generate = function() {
   script.push('})();');
   script.push('/*==*/');
 
-  return script.join('\n');
+  console.log(script.join('\n'));
+
+  var addonId = 'addon' + Math.round(Math.random() * 100000000);
+
+  zip.file('metadata.json', JSON.stringify({
+    installOrigin: 'http://gaiamobile.org',
+    manifestURL: 'app://' + addonId + '.gaiamobile.org/manifest.webapp',
+    version: 1
+  }));
+
+  zip.file('manifest.webapp', JSON.stringify({
+    name: 'Addon',
+    role: 'addon',
+    type: 'certified',
+    origin: 'app://' + addonId + '.gaiamobile.org'
+  }));
+
+  zip.file('main.js', script.join('\n'));
+
+  return zip.generate({ type: 'blob' });
 };
 
 AddonGenerator.prototype.getSelector = function() {

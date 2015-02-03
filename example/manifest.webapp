@@ -13,8 +13,10 @@
     "name": "The Gaia Team",
     "url": "https://github.com/fxos/"
   },
-  "type": "privileged",
-  "permissions": {},
+  "type": "certified",
+  "permissions": {
+    "webapps-manage": {}
+  },
   "installs_allowed_from": [
     "*"
   ],
