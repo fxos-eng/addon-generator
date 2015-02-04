@@ -15,6 +15,19 @@ var SetAttributeOperation     = require('./set-attribute-operation');
 function AddonGenerator(element) {
   this.element = element;
   this.operations = [];
+
+  this.id = 'addon' + Math.round(Math.random() * 100000000);
+  this.metadata = {
+    installOrigin: 'http://gaiamobile.org',
+    manifestURL: 'app://' + this.id + '.gaiamobile.org/manifest.webapp',
+    version: 1
+  };
+  this.manifest = {
+    name: 'Addon',
+    role: 'addon',
+    type: 'certified',
+    origin: 'app://' + this.id + '.gaiamobile.org'
+  };
 }
 
 AddonGenerator.prototype.constructor = AddonGenerator;
@@ -37,18 +50,8 @@ AddonGenerator.prototype.generate = function() {
 
   var addonId = 'addon' + Math.round(Math.random() * 100000000);
 
-  zip.file('metadata.json', JSON.stringify({
-    installOrigin: 'http://gaiamobile.org',
-    manifestURL: 'app://' + addonId + '.gaiamobile.org/manifest.webapp',
-    version: 1
-  }));
-
-  zip.file('manifest.webapp', JSON.stringify({
-    name: 'Addon',
-    role: 'addon',
-    type: 'certified',
-    origin: 'app://' + addonId + '.gaiamobile.org'
-  }));
+  zip.file('metadata.json', JSON.stringify(this.metadata));
+  zip.file('manifest.webapp', JSON.stringify(this.manifest));
 
   zip.file('main.js', script.join('\n'));
 
