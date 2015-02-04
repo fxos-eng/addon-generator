@@ -35,8 +35,6 @@ AddonGenerator.prototype.generate = function() {
   script.push('})();');
   script.push('/*==*/');
 
-  console.log(script.join('\n'));
-
   var addonId = 'addon' + Math.round(Math.random() * 100000000);
 
   zip.file('metadata.json', JSON.stringify({
