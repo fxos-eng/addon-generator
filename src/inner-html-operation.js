@@ -20,6 +20,9 @@ InnerHTMLOperation.prototype.getScript = function() {
   var script = [
     '/*=AddonGenerator::InnerHTMLOperation*/',
     'el.innerHTML=' + JSON.stringify(this.html) + ';',
+    '[].forEach.call(el.querySelectorAll(\'script\'), function(script) {',
+    '  eval(script.innerHTML);',
+    '});',
     '/*==*/'
   ];
 

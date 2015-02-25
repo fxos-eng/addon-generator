@@ -10356,12 +10356,29 @@ AddonGenerator.prototype.generate = function() {
   var script = [
     '/*=AddonGenerator*/',
     '(function(){',
-    'var el = document.querySelector(\'' + this.getSelector() + '\');'
+    'var el = document.querySelector(\'' + this.getSelector() + '\');',
+    'var mo = new MutationObserver(function() {',
+    '  var newEl = document.querySelector(\'' + this.getSelector() + '\');',
+    '  if (newEl !== el) {',
+    '    el = newEl;',
+    '    setTimeout(exec, 1);',
+    '  }',
+    '});',
+    'mo.observe(document.documentElement, {',
+    '  childList: true,',
+    '  attributes: true,',
+    '  characterData: true,',
+    '  subtree: true',
+    '});'
   ];
 
+  script.push('function exec() {');
   this.operations.forEach((operation) => {
     script.push(operation.getScript());
   });
+  script.push('}');
+
+  script.push('exec();');
 
   script.push('})();');
   script.push('/*==*/');
@@ -10508,6 +10525,9 @@ InnerHTMLOperation.prototype.getScript = function() {
   var script = [
     '/*=AddonGenerator::InnerHTMLOperation*/',
     'el.innerHTML=' + JSON.stringify(this.html) + ';',
+    '[].forEach.call(el.querySelectorAll(\'script\'), function(script) {',
+    '  eval(script.innerHTML);',
+    '});',
     '/*==*/'
   ];
 
