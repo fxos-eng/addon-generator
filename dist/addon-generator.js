@@ -10386,7 +10386,7 @@ AddonGenerator.prototype.getSelector = function() {
 
   path.push(getSpecificSelector(current));
 
-  while (!current.id && current.nodeName !== 'BODY') {
+  while (!current.id && current.nodeName !== 'HTML') {
     current = current.parentNode;
 
     path.push(getSpecificSelector(current));
