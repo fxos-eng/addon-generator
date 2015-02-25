@@ -10328,6 +10328,7 @@ var AppendChildOperation      = require('./append-child-operation');
 var InnerHTMLOperation        = require('./inner-html-operation');
 var RemoveOperation           = require('./remove-operation');
 var SetAttributeOperation     = require('./set-attribute-operation');
+var SetPropertyOperation      = require('./set-property-operation');
 
 function AddonGenerator(element) {
   this.element = element;
@@ -10365,12 +10366,15 @@ AddonGenerator.prototype.generate = function() {
   script.push('})();');
   script.push('/*==*/');
 
+  script = script.join('\n');
+  console.log('******** Generated SCRIPT ********', script);
+
   var addonId = 'addon' + Math.round(Math.random() * 100000000);
 
   zip.file('metadata.json', JSON.stringify(this.metadata));
   zip.file('manifest.webapp', JSON.stringify(this.manifest));
 
-  zip.file('main.js', script.join('\n'));
+  zip.file('main.js', script);
 
   return zip.generate({ type: 'blob' });
 };
@@ -10411,6 +10415,16 @@ AddonGenerator.prototype.setAttribute = function(name, value) {
   this.operations.push(new SetAttributeOperation(name, value));
 };
 
+AddonGenerator.prototype.setProperty = function(name, value) {
+  this.operations.push(new SetPropertyOperation(name, value));
+};
+
+AddonGenerator.prototype.setProperties = function(properties) {
+  for (var name in properties) {
+    this.setProperty(name, properties[name]);
+  }
+};
+
 function getSpecificSelector(element) {
   var selector = element.nodeName;
 
@@ -10438,7 +10452,7 @@ return AddonGenerator;
 
 })();
 
-},{"../bower_components/jszip/dist/jszip":1,"./add-event-listener-operation":6,"./append-child-operation":8,"./inner-html-operation":9,"./remove-operation":11,"./set-attribute-operation":12}],8:[function(require,module,exports){
+},{"../bower_components/jszip/dist/jszip":1,"./add-event-listener-operation":6,"./append-child-operation":8,"./inner-html-operation":9,"./remove-operation":11,"./set-attribute-operation":12,"./set-property-operation":13}],8:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported AppendChildOperation*/
 'use strict';
@@ -10592,6 +10606,40 @@ SetAttributeOperation.prototype.getScript = function() {
 };
 
 return SetAttributeOperation;
+
+})();
+
+},{"./operation":10}],13:[function(require,module,exports){
+/*jshint esnext:true*/
+/*exported SetPropertyOperation*/
+'use strict';
+
+module.exports = window.SetPropertyOperation = (function() {
+
+var Operation = require('./operation');
+
+function SetPropertyOperation(name, value) {
+  Operation.apply(this, arguments);
+
+  this.name = name;
+  this.value = value;
+}
+
+SetPropertyOperation.prototype = Object.create(Operation.prototype);
+
+SetPropertyOperation.prototype.constructor = SetPropertyOperation;
+
+SetPropertyOperation.prototype.getScript = function() {
+  var script = [
+    '/*=AddonGenerator::SetPropertyOperation*/',
+    'el.' + this.name + ' = ' + JSON.stringify(this.value) + ';',
+    '/*==*/'
+  ];
+
+  return script.join('\n');
+};
+
+return SetPropertyOperation;
 
 })();
 
