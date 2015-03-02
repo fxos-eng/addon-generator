@@ -10314,7 +10314,7 @@ return AddEventListenerOperation;
 
 })();
 
-},{"./operation":10}],7:[function(require,module,exports){
+},{"./operation":14}],7:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported AddonGenerator*/
 'use strict';
@@ -10323,12 +10323,18 @@ module.exports = window.AddonGenerator = (function() {
 
 var JSZip = require('../bower_components/jszip/dist/jszip');
 
+var SelectorUtils             = require('./selector-utils');
+
 var AddEventListenerOperation = require('./add-event-listener-operation');
 var AppendChildOperation      = require('./append-child-operation');
 var InnerHTMLOperation        = require('./inner-html-operation');
 var RemoveOperation           = require('./remove-operation');
 var SetAttributeOperation     = require('./set-attribute-operation');
 var SetPropertyOperation      = require('./set-property-operation');
+var MoveAppendOperation       = require('./move-append-operation');
+var MovePrependOperation      = require('./move-prepend-operation');
+var MoveAfterOperation        = require('./move-after-operation');
+var MoveBeforeOperation       = require('./move-before-operation');
 
 function AddonGenerator(element) {
   this.element = element;
@@ -10397,19 +10403,7 @@ AddonGenerator.prototype.generate = function() {
 };
 
 AddonGenerator.prototype.getSelector = function() {
-  var path = [];
-
-  var current = this.element;
-
-  path.push(getSpecificSelector(current));
-
-  while (!current.id && current.nodeName !== 'HTML') {
-    current = current.parentNode;
-
-    path.push(getSpecificSelector(current));
-  }
-
-  return path.reverse().join('>');
+  return SelectorUtils.getSelector(this.element);
 };
 
 AddonGenerator.prototype.addEventListener = function(eventName, callback) {
@@ -10442,34 +10436,27 @@ AddonGenerator.prototype.setProperties = function(properties) {
   }
 };
 
-function getSpecificSelector(element) {
-  var selector = element.nodeName;
+AddonGenerator.prototype.moveAppend = function(target) {
+  this.operations.push(new MoveAppendOperation(target));
+};
 
-  if (element.id) {
-    selector += '#' + element.id;
-    return selector;
-  }
+AddonGenerator.prototype.movePrepend = function(target) {
+  this.operations.push(new MovePrependOperation(target));
+};
 
-  Array.prototype.forEach.call(element.classList, (item) => {
-    selector += '.' + item;
-  });
+AddonGenerator.prototype.moveAfter = function(target) {
+  this.operations.push(new MoveAfterOperation(target));
+};
 
-  Array.prototype.forEach.call(element.attributes, (attr) => {
-    if (attr.nodeName.toLowerCase() === 'class') {
-      return;
-    }
-
-    selector += '[' + attr.nodeName + '="' + attr.nodeValue + '"]';
-  });
-
-  return selector;
-}
+AddonGenerator.prototype.moveBefore = function(target) {
+  this.operations.push(new MoveBeforeOperation(target));
+};
 
 return AddonGenerator;
 
 })();
 
-},{"../bower_components/jszip/dist/jszip":1,"./add-event-listener-operation":6,"./append-child-operation":8,"./inner-html-operation":9,"./remove-operation":11,"./set-attribute-operation":12,"./set-property-operation":13}],8:[function(require,module,exports){
+},{"../bower_components/jszip/dist/jszip":1,"./add-event-listener-operation":6,"./append-child-operation":8,"./inner-html-operation":9,"./move-after-operation":10,"./move-append-operation":11,"./move-before-operation":12,"./move-prepend-operation":13,"./remove-operation":15,"./selector-utils":16,"./set-attribute-operation":17,"./set-property-operation":18}],8:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported AppendChildOperation*/
 'use strict';
@@ -10502,7 +10489,7 @@ return AppendChildOperation;
 
 })();
 
-},{"./operation":10}],9:[function(require,module,exports){
+},{"./operation":14}],9:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported InnerHTMLOperation*/
 'use strict';
@@ -10538,7 +10525,168 @@ return InnerHTMLOperation;
 
 })();
 
-},{"./operation":10}],10:[function(require,module,exports){
+},{"./operation":14}],10:[function(require,module,exports){
+/*jshint esnext:true*/
+/*exported MoveAfterOperation*/
+'use strict';
+
+module.exports = window.MoveAfterOperation = (function() {
+
+var Operation = require('./operation');
+
+var SelectorUtils = require('./selector-utils');
+
+function MoveAfterOperation(target) {
+  Operation.apply(this, arguments);
+
+  this.target = target;
+}
+
+MoveAfterOperation.prototype = Object.create(Operation.prototype);
+
+MoveAfterOperation.prototype.constructor = MoveAfterOperation;
+
+MoveAfterOperation.prototype.getScript = function() {
+  var targetSelector = SelectorUtils.getSelector(this.target);
+  var script = [
+    '/*=AddonGenerator::MoveAfterOperation*/',
+    'var target = document.querySelector(\'' + targetSelector + '\');',
+    'if (target && target.parentNode) {',
+    '  if (target.parentNode.lastChild === target) {',
+    '    target.parentNode.appendChild(el);',
+    '  }',
+    '  else {',
+    '    target.parentNode.insertBefore(el, target.nextSibling);',
+    '  }',
+    '}',
+    '/*==*/'
+  ];
+
+  return script.join('\n');
+};
+
+return MoveAppendOperation;
+
+})();
+
+},{"./operation":14,"./selector-utils":16}],11:[function(require,module,exports){
+/*jshint esnext:true*/
+/*exported MoveAppendOperation*/
+'use strict';
+
+module.exports = window.MoveAppendOperation = (function() {
+
+var Operation = require('./operation');
+
+var SelectorUtils = require('./selector-utils');
+
+function MoveAppendOperation(target) {
+  Operation.apply(this, arguments);
+
+  this.target = target;
+}
+
+MoveAppendOperation.prototype = Object.create(Operation.prototype);
+
+MoveAppendOperation.prototype.constructor = MoveAppendOperation;
+
+MoveAppendOperation.prototype.getScript = function() {
+  var targetSelector = SelectorUtils.getSelector(this.target);
+  var script = [
+    '/*=AddonGenerator::MoveAppendOperation*/',
+    'var target = document.querySelector(\'' + targetSelector + '\');',
+    'if (target) {',
+    '  target.appendChild(el);',
+    '}',
+    '/*==*/'
+  ];
+
+  return script.join('\n');
+};
+
+return MoveAppendOperation;
+
+})();
+
+},{"./operation":14,"./selector-utils":16}],12:[function(require,module,exports){
+/*jshint esnext:true*/
+/*exported MoveBeforeOperation*/
+'use strict';
+
+module.exports = window.MoveBeforeOperation = (function() {
+
+var Operation = require('./operation');
+
+var SelectorUtils = require('./selector-utils');
+
+function MoveBeforeOperation(target) {
+  Operation.apply(this, arguments);
+
+  this.target = target;
+}
+
+MoveBeforeOperation.prototype = Object.create(Operation.prototype);
+
+MoveBeforeOperation.prototype.constructor = MoveBeforeOperation;
+
+MoveBeforeOperation.prototype.getScript = function() {
+  var targetSelector = SelectorUtils.getSelector(this.target);
+  var script = [
+    '/*=AddonGenerator::MoveBeforeOperation*/',
+    'var target = document.querySelector(\'' + targetSelector + '\');',
+    'if (target && target.parentNode) {',
+    '  target.parentNode.insertBefore(el, target);',
+    '}',
+    '/*==*/'
+  ];
+
+  return script.join('\n');
+};
+
+return MoveAppendOperation;
+
+})();
+
+},{"./operation":14,"./selector-utils":16}],13:[function(require,module,exports){
+/*jshint esnext:true*/
+/*exported MovePrependOperation*/
+'use strict';
+
+module.exports = window.MovePrependOperation = (function() {
+
+var Operation = require('./operation');
+
+var SelectorUtils = require('./selector-utils');
+
+function MovePrependOperation(target) {
+  Operation.apply(this, arguments);
+
+  this.target = target;
+}
+
+MovePrependOperation.prototype = Object.create(Operation.prototype);
+
+MovePrependOperation.prototype.constructor = MovePrependOperation;
+
+MovePrependOperation.prototype.getScript = function() {
+  var targetSelector = SelectorUtils.getSelector(this.target);
+  var script = [
+    '/*=AddonGenerator::MovePrependOperation*/',
+    'var target = document.querySelector(\'' + targetSelector + '\');',
+    'if (target) {',
+    '  target.insertBefore(el, target.firstChild);',
+    '}',
+    '/*==*/'
+  ];
+
+  return script.join('\n');
+};
+
+return MoveAppendOperation;
+
+})();
+
+},{"./operation":14,"./selector-utils":16}],14:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported Operation*/
 'use strict';
@@ -10564,7 +10712,7 @@ return Operation;
 
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported RemoveOperation*/
 'use strict';
@@ -10595,7 +10743,59 @@ return RemoveOperation;
 
 })();
 
-},{"./operation":10}],12:[function(require,module,exports){
+},{"./operation":14}],16:[function(require,module,exports){
+/*jshint esnext:true*/
+/*exported SelectorUtils*/
+'use strict';
+
+module.exports = window.SelectorUtils = (function() {
+
+var SelectorUtils = {};
+
+SelectorUtils.getSelector = function(element) {
+  var path = [];
+
+  var current = element;
+
+  path.push(getSpecificSelector(current));
+
+  while (!current.id && current.nodeName !== 'HTML') {
+    current = current.parentNode;
+
+    path.push(getSpecificSelector(current));
+  }
+
+  return path.reverse().join('>');
+};
+
+function getSpecificSelector(element) {
+  var selector = element.nodeName;
+
+  if (element.id) {
+    selector += '#' + element.id;
+    return selector;
+  }
+
+  Array.prototype.forEach.call(element.classList, (item) => {
+    selector += '.' + item;
+  });
+
+  Array.prototype.forEach.call(element.attributes, (attr) => {
+    if (attr.nodeName.toLowerCase() === 'class') {
+      return;
+    }
+
+    selector += '[' + attr.nodeName + '="' + attr.nodeValue + '"]';
+  });
+
+  return selector;
+}
+
+return SelectorUtils;
+
+})();
+
+},{}],17:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported SetAttributeOperation*/
 'use strict';
@@ -10629,7 +10829,7 @@ return SetAttributeOperation;
 
 })();
 
-},{"./operation":10}],13:[function(require,module,exports){
+},{"./operation":14}],18:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported SetPropertyOperation*/
 'use strict';
@@ -10663,5 +10863,5 @@ return SetPropertyOperation;
 
 })();
 
-},{"./operation":10}]},{},[7])(7)
+},{"./operation":14}]},{},[7])(7)
 });

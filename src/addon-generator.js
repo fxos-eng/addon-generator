@@ -6,12 +6,18 @@ module.exports = window.AddonGenerator = (function() {
 
 var JSZip = require('../bower_components/jszip/dist/jszip');
 
+var SelectorUtils             = require('./selector-utils');
+
 var AddEventListenerOperation = require('./add-event-listener-operation');
 var AppendChildOperation      = require('./append-child-operation');
 var InnerHTMLOperation        = require('./inner-html-operation');
 var RemoveOperation           = require('./remove-operation');
 var SetAttributeOperation     = require('./set-attribute-operation');
 var SetPropertyOperation      = require('./set-property-operation');
+var MoveAppendOperation       = require('./move-append-operation');
+var MovePrependOperation      = require('./move-prepend-operation');
+var MoveAfterOperation        = require('./move-after-operation');
+var MoveBeforeOperation       = require('./move-before-operation');
 
 function AddonGenerator(element) {
   this.element = element;
@@ -80,19 +86,7 @@ AddonGenerator.prototype.generate = function() {
 };
 
 AddonGenerator.prototype.getSelector = function() {
-  var path = [];
-
-  var current = this.element;
-
-  path.push(getSpecificSelector(current));
-
-  while (!current.id && current.nodeName !== 'HTML') {
-    current = current.parentNode;
-
-    path.push(getSpecificSelector(current));
-  }
-
-  return path.reverse().join('>');
+  return SelectorUtils.getSelector(this.element);
 };
 
 AddonGenerator.prototype.addEventListener = function(eventName, callback) {
@@ -125,28 +119,21 @@ AddonGenerator.prototype.setProperties = function(properties) {
   }
 };
 
-function getSpecificSelector(element) {
-  var selector = element.nodeName;
+AddonGenerator.prototype.moveAppend = function(target) {
+  this.operations.push(new MoveAppendOperation(target));
+};
 
-  if (element.id) {
-    selector += '#' + element.id;
-    return selector;
-  }
+AddonGenerator.prototype.movePrepend = function(target) {
+  this.operations.push(new MovePrependOperation(target));
+};
 
-  Array.prototype.forEach.call(element.classList, (item) => {
-    selector += '.' + item;
-  });
+AddonGenerator.prototype.moveAfter = function(target) {
+  this.operations.push(new MoveAfterOperation(target));
+};
 
-  Array.prototype.forEach.call(element.attributes, (attr) => {
-    if (attr.nodeName.toLowerCase() === 'class') {
-      return;
-    }
-
-    selector += '[' + attr.nodeName + '="' + attr.nodeValue + '"]';
-  });
-
-  return selector;
-}
+AddonGenerator.prototype.moveBefore = function(target) {
+  this.operations.push(new MoveBeforeOperation(target));
+};
 
 return AddonGenerator;
 
