@@ -4,7 +4,7 @@
 
 module.exports = window.AddonGenerator = (function() {
 
-var JSZip = require('../bower_components/jszip/dist/jszip');
+var JSZip = require('../bower_components/jszip/dist/jszip.min');
 
 var SelectorUtils             = require('./selector-utils');
 
