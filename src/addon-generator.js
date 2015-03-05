@@ -24,7 +24,7 @@ function AddonGenerator(element, name) {
 
   this.operations = [];
 
-  this.id = 'addon-' + new Date().toISOString();
+  this.id = 'addon' + Math.round(Math.random() * 100000000);
   this.name = name || this.id;
 
   this.packageMetadata = {
