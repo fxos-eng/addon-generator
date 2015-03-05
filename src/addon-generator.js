@@ -24,10 +24,14 @@ function AddonGenerator(element) {
   this.operations = [];
 
   this.id = 'addon' + Math.round(Math.random() * 100000000);
-  this.metadata = {
+  this.packageMetadata = {
     installOrigin: 'http://gaiamobile.org',
-    manifestURL: 'app://' + this.id + '.gaiamobile.org/manifest.webapp',
+    manifestURL: 'app://' + this.id + '.gaiamobile.org/update.webapp',
     version: 1
+  };
+  this.packageManifest = {
+    name: 'Addon',
+    package_path: '/application.zip'
   };
   this.manifest = {
     name: 'Addon',
@@ -40,7 +44,7 @@ function AddonGenerator(element) {
 AddonGenerator.prototype.constructor = AddonGenerator;
 
 AddonGenerator.prototype.generate = function() {
-  var zip = new JSZip();
+  var applicationZip = new JSZip();
 
   var script = [
     '/*=AddonGenerator*/',
@@ -75,14 +79,15 @@ AddonGenerator.prototype.generate = function() {
   script = script.join('\n');
   console.log('******** Generated SCRIPT ********', script);
 
-  var addonId = 'addon' + Math.round(Math.random() * 100000000);
+  applicationZip.file('manifest.webapp', JSON.stringify(this.manifest));
+  applicationZip.file('main.js', script);
 
-  zip.file('metadata.json', JSON.stringify(this.metadata));
-  zip.file('manifest.webapp', JSON.stringify(this.manifest));
+  var packageZip = new JSZip();
+  packageZip.file('metadata.json', JSON.stringify(this.packageMetadata));
+  packageZip.file('update.webapp', JSON.stringify(this.packageManifest));
+  packageZip.file('application.zip', applicationZip.generate({ type: 'blob' }));
 
-  zip.file('main.js', script);
-
-  return zip.generate({ type: 'blob' });
+  return packageZip.generate({ type: 'blob' });
 };
 
 AddonGenerator.prototype.getSelector = function() {
