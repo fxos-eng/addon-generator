@@ -1368,22 +1368,25 @@ var MovePrependOperation      = require('./move-prepend-operation');
 var MoveAfterOperation        = require('./move-after-operation');
 var MoveBeforeOperation       = require('./move-before-operation');
 
-function AddonGenerator(element) {
+function AddonGenerator(element, name) {
   this.element = element;
+
   this.operations = [];
 
-  this.id = 'addon' + Math.round(Math.random() * 100000000);
+  this.id = 'addon-' + new Date().toISOString();
+  this.name = name || this.id;
+
   this.packageMetadata = {
     installOrigin: 'http://gaiamobile.org',
     manifestURL: 'app://' + this.id + '.gaiamobile.org/update.webapp',
     version: 1
   };
   this.packageManifest = {
-    name: 'Addon',
+    name: this.name,
     package_path: '/application.zip'
   };
   this.manifest = {
-    name: 'Addon',
+    name: this.name,
     role: 'addon',
     type: 'certified',
     origin: 'app://' + this.id + '.gaiamobile.org'
