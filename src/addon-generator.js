@@ -88,7 +88,7 @@ AddonGenerator.prototype.generate = function() {
   var packageZip = new JSZip();
   packageZip.file('metadata.json', JSON.stringify(this.packageMetadata));
   packageZip.file('update.webapp', JSON.stringify(this.packageManifest));
-  packageZip.file('application.zip', applicationZip.generate({ type: 'arraybuffer' }));
+  packageZip.file('application.zip', applicationZip.generate({ type: 'uint8array' }));
 
   return packageZip.generate({ type: 'blob' });
 };

@@ -1,6 +1,6 @@
 {
   "name": "fxos-addon-generator",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "homepage": "https://github.com/fxos/addon-generator",
   "license": "MPL",
   "main": "dist/fxos-addon-generator.js",
