@@ -4,7 +4,7 @@
 
 module.exports = window.AddonGenerator = (function() {
 
-var JSZip = require('../bower_components/jszip/dist/jszip.min');
+var JSZip = require('../bower_components/jszip/dist/jszip');
 
 var SelectorUtils             = require('./selector-utils');
 
@@ -88,9 +88,9 @@ AddonGenerator.prototype.generate = function() {
   var packageZip = new JSZip();
   packageZip.file('metadata.json', JSON.stringify(this.packageMetadata));
   packageZip.file('update.webapp', JSON.stringify(this.packageManifest));
-  packageZip.file('application.zip', applicationZip.generate({ type: 'uint8array' }));
+  packageZip.file('application.zip', applicationZip.generate({ type: 'arraybuffer' }));
 
-  return packageZip.generate({ type: 'blob' });
+  return packageZip.generate({ type: 'arraybuffer' });
 };
 
 AddonGenerator.prototype.getSelector = function() {
