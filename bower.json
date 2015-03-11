@@ -1,6 +1,6 @@
 {
   "name": "fxos-addon-generator",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "homepage": "https://github.com/fxos/addon-generator",
   "authors": [
     "FxOS Developers <dev-gaia@lists.mozilla.com>"
@@ -19,7 +19,7 @@
     "README.md"
   ],
   "dependencies": {
-    "jszip": "Stuk/jszip#~2.4.0"
+    "jszip": "Stuk/jszip#~2.3.0"
   },
   "devDependencies": {}
 }
