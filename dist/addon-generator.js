@@ -9055,7 +9055,7 @@ return AddEventListenerOperation;
 
 })();
 
-},{"./operation":10}],3:[function(require,module,exports){
+},{"./operation":11}],3:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported AddonGenerator*/
 'use strict';
@@ -9064,6 +9064,7 @@ module.exports = window.AddonGenerator = (function() {
 
 var JSZip = require('../bower_components/jszip/dist/jszip');
 
+var AddonMerger               = require('./addon-merger');
 var SelectorUtils             = require('./selector-utils');
 
 var AddEventListenerOperation = require('./add-event-listener-operation');
@@ -9205,7 +9206,116 @@ return AddonGenerator;
 
 })();
 
-},{"../bower_components/jszip/dist/jszip":1,"./add-event-listener-operation":2,"./append-child-operation":4,"./inner-html-operation":5,"./move-after-operation":6,"./move-append-operation":7,"./move-before-operation":8,"./move-prepend-operation":9,"./remove-operation":11,"./selector-utils":12,"./set-attribute-operation":13,"./set-property-operation":14}],4:[function(require,module,exports){
+},{"../bower_components/jszip/dist/jszip":1,"./add-event-listener-operation":2,"./addon-merger":4,"./append-child-operation":5,"./inner-html-operation":6,"./move-after-operation":7,"./move-append-operation":8,"./move-before-operation":9,"./move-prepend-operation":10,"./remove-operation":12,"./selector-utils":13,"./set-attribute-operation":14,"./set-property-operation":15}],4:[function(require,module,exports){
+/*jshint esnext:true*/
+/*exported AddonMerger*/
+'use strict';
+
+module.exports = window.AddonMerger = (function() {
+
+var JSZip = require('../bower_components/jszip/dist/jszip');
+
+function AddonMerger(name) {
+  this.blobs = [];
+
+  this.id = 'addon' + Math.round(Math.random() * 100000000);
+  this.name = name || this.id;
+
+  this.packageMetadata = {
+    installOrigin: 'http://gaiamobile.org',
+    manifestURL: 'app://' + this.id + '.gaiamobile.org/update.webapp',
+    version: 1
+  };
+  this.packageManifest = {
+    name: this.name,
+    package_path: '/application.zip'
+  };
+  this.manifest = {
+    name: this.name,
+    role: 'addon',
+    type: 'certified',
+    origin: 'app://' + this.id + '.gaiamobile.org'
+  };
+}
+
+AddonMerger.prototype.constructor = AddonMerger;
+
+AddonMerger.prototype.merge = function(callback) {
+  if (typeof callback !== 'function') {
+    return;
+  }
+
+  var scripts = [];
+  var error = false;
+
+  this.blobs.forEach((blob) => {
+    blobToArrayBuffer(blob, (arrayBuffer) => {
+      if (error) {
+        return;
+      }
+
+      var zip = new JSZip();
+      zip.load(arrayBuffer);
+
+      var applicationZipFile = zip.file('application.zip');
+      if (!applicationZipFile) {
+        error = true;
+        callback();
+        return;
+      }
+
+      var applicationZip = new JSZip();
+      applicationZip.load(applicationZipFile.asArrayBuffer());
+
+      var scriptFile = applicationZip.file('main.js');
+      if (!scriptFile) {
+        error = true;
+        callback();
+        return;
+      }
+
+      scripts.push(scriptFile.asText());
+
+      if (scripts.length === this.blobs.length) {
+        callback(packageZip(this, scripts.join('\n')));
+      }
+    });
+  });
+};
+
+AddonMerger.prototype.add = function(blob) {
+  this.blobs.push(blob);
+};
+
+function packageZip(merger, script) {
+  var applicationZip = new JSZip();
+  applicationZip.file('manifest.webapp', JSON.stringify(merger.manifest));
+  applicationZip.file('main.js', script);
+
+  var packageZip = new JSZip();
+  packageZip.file('metadata.json', JSON.stringify(merger.packageMetadata));
+  packageZip.file('update.webapp', JSON.stringify(merger.packageManifest));
+  packageZip.file('application.zip', applicationZip.generate({ type: 'arraybuffer' }));
+
+  return packageZip.generate({ type: 'arraybuffer' });
+}
+
+function blobToArrayBuffer(blob, callback) {
+  var fileReader = new FileReader();
+  fileReader.onload = function() {
+    if (typeof callback === 'function') {
+      callback(fileReader.result);
+    }
+  };
+  fileReader.readAsArrayBuffer(blob);
+
+  return fileReader.result;
+}
+
+return AddonMerger;
+
+})();
+},{"../bower_components/jszip/dist/jszip":1}],5:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported AppendChildOperation*/
 'use strict';
@@ -9238,7 +9348,7 @@ return AppendChildOperation;
 
 })();
 
-},{"./operation":10}],5:[function(require,module,exports){
+},{"./operation":11}],6:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported InnerHTMLOperation*/
 'use strict';
@@ -9274,7 +9384,7 @@ return InnerHTMLOperation;
 
 })();
 
-},{"./operation":10}],6:[function(require,module,exports){
+},{"./operation":11}],7:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported MoveAfterOperation*/
 'use strict';
@@ -9318,7 +9428,7 @@ return MoveAppendOperation;
 
 })();
 
-},{"./operation":10,"./selector-utils":12}],7:[function(require,module,exports){
+},{"./operation":11,"./selector-utils":13}],8:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported MoveAppendOperation*/
 'use strict';
@@ -9357,7 +9467,7 @@ return MoveAppendOperation;
 
 })();
 
-},{"./operation":10,"./selector-utils":12}],8:[function(require,module,exports){
+},{"./operation":11,"./selector-utils":13}],9:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported MoveBeforeOperation*/
 'use strict';
@@ -9396,7 +9506,7 @@ return MoveAppendOperation;
 
 })();
 
-},{"./operation":10,"./selector-utils":12}],9:[function(require,module,exports){
+},{"./operation":11,"./selector-utils":13}],10:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported MovePrependOperation*/
 'use strict';
@@ -9435,7 +9545,7 @@ return MoveAppendOperation;
 
 })();
 
-},{"./operation":10,"./selector-utils":12}],10:[function(require,module,exports){
+},{"./operation":11,"./selector-utils":13}],11:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported Operation*/
 'use strict';
@@ -9461,7 +9571,7 @@ return Operation;
 
 })();
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported RemoveOperation*/
 'use strict';
@@ -9492,7 +9602,7 @@ return RemoveOperation;
 
 })();
 
-},{"./operation":10}],12:[function(require,module,exports){
+},{"./operation":11}],13:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported SelectorUtils*/
 'use strict';
@@ -9544,7 +9654,7 @@ return SelectorUtils;
 
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported SetAttributeOperation*/
 'use strict';
@@ -9578,7 +9688,7 @@ return SetAttributeOperation;
 
 })();
 
-},{"./operation":10}],14:[function(require,module,exports){
+},{"./operation":11}],15:[function(require,module,exports){
 /*jshint esnext:true*/
 /*exported SetPropertyOperation*/
 'use strict';
@@ -9612,5 +9722,5 @@ return SetPropertyOperation;
 
 })();
 
-},{"./operation":10}]},{},[3])(3)
+},{"./operation":11}]},{},[3])(3)
 });
