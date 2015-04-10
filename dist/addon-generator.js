@@ -10803,9 +10803,14 @@ InnerHTMLOperation.prototype.getScript = function() {
   var script = [
     '/*=AddonGenerator::InnerHTMLOperation*/',
     'el.innerHTML=' + JSON.stringify(this.html) + ';',
-    '[].forEach.call(el.querySelectorAll(\'script\'), function(script) {',
-    '  eval(script.innerHTML);',
-    '});',
+    'if (el.tagName === \'SCRIPT\') {',
+    '  eval(el.innerHTML);',
+    '}',
+    'else {',
+    '  [].forEach.call(el.querySelectorAll(\'script\'), function(script) {',
+    '    eval(script.innerHTML);',
+    '  });',
+    '}',
     '/*==*/'
   ];
 
