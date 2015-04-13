@@ -13,6 +13,7 @@ var AddEventListenerOperation = require('./add-event-listener-operation');
 var AppendChildOperation      = require('./append-child-operation');
 var InnerHTMLOperation        = require('./inner-html-operation');
 var RemoveOperation           = require('./remove-operation');
+var DuplicateOperation        = require('./duplicate-operation');
 var SetAttributeOperation     = require('./set-attribute-operation');
 var SetPropertyOperation      = require('./set-property-operation');
 var MoveAppendOperation       = require('./move-append-operation');
@@ -112,6 +113,10 @@ AddonGenerator.prototype.innerHTML = function(html) {
 
 AddonGenerator.prototype.remove = function() {
   this.operations.push(new RemoveOperation());
+};
+
+AddonGenerator.prototype.duplicate = function() {
+  this.operations.push(new DuplicateOperation());
 };
 
 AddonGenerator.prototype.setAttribute = function(name, value) {
